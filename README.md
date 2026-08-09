@@ -1,36 +1,184 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Workflow Builder
 
-## Getting Started
+A full-stack AI workflow automation MVP built with **Next.js, FastAPI, Nhost, Hasura GraphQL, and PostgreSQL**.
 
-First, run the development server:
+The application allows users to load workflows from Hasura, trigger workflow executions, execute multiple step types, and pause execution at an approval gate.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Live Demo
+
+* **Frontend (Vercel):** https://ai-workflow-pvb4.vercel.app/
+* **Backend (Railway):** https://ai-workflow-production-cb49.up.railway.app/
+* **API Docs:** https://ai-workflow-production-cb49.up.railway.app/docs
+* **GraphQL Endpoint:** https://kcgyjzfvtaqklculmxbt.hasura.ap-south-1.nhost.run/v1/graphql
+
+---
+
+## Features
+
+* Organization-scoped workflow storage in PostgreSQL
+* GraphQL API powered by Hasura
+* Workflow step execution engine in FastAPI
+* Step types:
+
+  * `llm_call` (stubbed with delay)
+  * `http_request`
+  * `approval_gate`
+* Live workflow execution result display in the frontend
+* Deployment on Vercel and Railway
+
+---
+
+## Tech Stack
+
+### Frontend
+
+* Next.js 15
+* React
+* TypeScript
+* Tailwind CSS
+
+### Backend
+
+* FastAPI
+* Uvicorn
+* Requests
+
+### Backend Services
+
+* Nhost
+* Hasura GraphQL Engine
+* PostgreSQL
+
+---
+
+## Project Structure
+
+```text
+ai-workflow-builder/
+├── app/
+│   ├── api/workflows/route.ts
+│   └── page.tsx
+├── backend/
+│   ├── main.py
+│   └── requirements.txt
+├── ARCHITECTURE.md
+├── README.md
+└── package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Clone the repository
 
-## Learn More
+```bash
+git clone https://github.com/iqra2243/ai-workflow.git
+cd ai-workflow
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Frontend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev -- --port 3003
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open http://localhost:3003
 
-## Deploy on Vercel
+### 3. Backend
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+cd backend
+python -m venv venv
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Windows
+venv\Scripts\activate
+
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+Open http://localhost:8000/docs
+
+---
+
+## API Example
+
+### Trigger Workflow
+
+**POST** `/trigger-workflow`
+
+Request:
+
+```json
+{
+  "workflow_id": "46d39119-fc1c-4fcc-96a6-0df52cf848a5"
+}
+```
+
+Example response:
+
+```json
+{
+  "status": "paused",
+  "message": "Workflow paused at approval gate"
+}
+```
+
+---
+
+## GraphQL Query Example
+
+```graphql
+query {
+  workflows {
+    id
+    name
+    description
+  }
+}
+```
+
+---
+
+## Current MVP Scope
+
+Implemented:
+
+* Workflow listing
+* Workflow execution
+* External HTTP request step
+* Approval gate pause state
+* Live hosted frontend and backend
+
+Planned / future work:
+
+* Real Nhost authentication
+* Role-based owner/editor/viewer permissions
+* GraphQL subscriptions for live updates
+* Webhook and scheduled triggers
+* Persistent workflow_runs and step_runs tables
+* Quota enforcement
+
+---
+
+## Architecture Notes
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for schema reasoning, permission model, and workflow execution details.
+
+---
+
+## Demo Video
+
+Add your Loom / Google Drive / YouTube demo link here before submission.
+
+---
+
+## Author
+
+**Iqra Tahreem**
+
+GitHub: https://github.com/iqra2243
