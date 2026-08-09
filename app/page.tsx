@@ -49,7 +49,7 @@ export default function Home() {
       setLoading(true);
 
       const response = await fetch(
-        'http://localhost:8000/trigger-workflow',
+        'https://ai-workflow-production-cb49.up.railway.app/trigger-workflow',
         {
           method: 'POST',
           headers: {
