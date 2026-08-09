@@ -10,23 +10,40 @@ type Workflow = {
   description: string;
 };
 
+type StepResult = {
+  step: string;
+  status: string;
+  output?: unknown;
+  message?: string;
+};
+
+type RunResult = {
+  id?: string;
+  status?: string;
+  message?: string;
+  steps?: StepResult[];
+  error?: string;
+};
+
 export default function Home() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [runResult, setRunResult] = useState<any>(null);
+  const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Load workflows from Next.js API route
   const loadWorkflows = async () => {
     try {
       const response = await fetch('/api/workflows');
-      const data = await response.json();
-      setWorkflows(data.data.workflows || []);
-    } catch (e: any) {
-      setRunResult({ error: e.message });
+      const data: { data?: { workflows?: Workflow[] } } =
+        await response.json();
+
+      setWorkflows(data.data?.workflows || []);
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : 'Unknown error';
+      setRunResult({ error: message });
     }
   };
 
-  // Trigger FastAPI backend
   const runWorkflow = async () => {
     try {
       setLoading(true);
@@ -44,10 +61,12 @@ export default function Home() {
         }
       );
 
-      const data = await response.json();
+      const data: RunResult = await response.json();
       setRunResult(data);
-    } catch (e: any) {
-      setRunResult({ error: e.message });
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : 'Unknown error';
+      setRunResult({ error: message });
     } finally {
       setLoading(false);
     }
@@ -55,7 +74,6 @@ export default function Home() {
 
   return (
     <main className='min-h-screen bg-gray-50 text-gray-900'>
-      {/* Header */}
       <header className='border-b bg-white shadow-sm'>
         <div className='max-w-5xl mx-auto px-6 py-4 flex items-center justify-between'>
           <div>
@@ -84,7 +102,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Stats */}
       <section className='max-w-5xl mx-auto px-6 py-8 grid md:grid-cols-3 gap-6'>
         <div className='bg-white rounded-2xl shadow-sm border p-6'>
           <p className='text-sm text-gray-500 mb-2'>Total Workflows</p>
@@ -104,7 +121,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Workflow List */}
       <section className='max-w-5xl mx-auto px-6 pb-8'>
         <div className='bg-white rounded-2xl shadow-sm border p-6'>
           <h2 className='text-xl font-semibold mb-4'>Workflows</h2>
@@ -135,7 +151,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Latest Run */}
       <section className='max-w-5xl mx-auto px-6 pb-12'>
         <div className='bg-white rounded-2xl shadow-sm border p-6'>
           <h2 className='text-xl font-semibold mb-4'>Latest Run</h2>
@@ -158,7 +173,7 @@ export default function Home() {
               <p className='text-gray-700'>{runResult.message}</p>
 
               <div className='space-y-3'>
-                {runResult.steps?.map((step: any, index: number) => (
+                {runResult.steps?.map((step, index) => (
                   <div
                     key={index}
                     className='border rounded-xl p-4 bg-gray-50'
@@ -178,7 +193,11 @@ export default function Home() {
                     </div>
 
                     <pre className='text-sm whitespace-pre-wrap overflow-auto'>
-                      {JSON.stringify(step.output || step.message, null, 2)}
+                      {JSON.stringify(
+                        step.output ?? step.message,
+                        null,
+                        2
+                      )}
                     </pre>
                   </div>
                 ))}
