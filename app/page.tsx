@@ -1,69 +1,192 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+
+const WORKFLOW_ID = '46d39119-fc1c-4fcc-96a6-0df52cf848a5';
+
+type Workflow = {
+  id: string;
+  name: string;
+  description: string;
+};
 
 export default function Home() {
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [runResult, setRunResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  // Load workflows from Next.js API route
+  const loadWorkflows = async () => {
+    try {
+      const response = await fetch('/api/workflows');
+      const data = await response.json();
+      setWorkflows(data.data.workflows || []);
+    } catch (e: any) {
+      setRunResult({ error: e.message });
+    }
+  };
+
+  // Trigger FastAPI backend
+  const runWorkflow = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        'http://localhost:8000/trigger-workflow',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            workflow_id: WORKFLOW_ID,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      setRunResult(data);
+    } catch (e: any) {
+      setRunResult({ error: e.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className='min-h-screen bg-gray-50 text-gray-900'>
+      {/* Header */}
+      <header className='border-b bg-white shadow-sm'>
+        <div className='max-w-5xl mx-auto px-6 py-4 flex items-center justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold'>AI Workflow Builder</h1>
+            <p className='text-sm text-gray-500'>
+              Build, trigger, and monitor AI workflows
+            </p>
+          </div>
+
+          <div className='flex gap-3'>
+            <button
+              onClick={loadWorkflows}
+              className='bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition'
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Load Workflows
+            </button>
+
+            <button
+              onClick={runWorkflow}
+              disabled={loading}
+              className='bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-medium transition'
             >
-              Learning
-            </a>{" "}
-            center.
+              {loading ? 'Running...' : 'Run Workflow'}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Stats */}
+      <section className='max-w-5xl mx-auto px-6 py-8 grid md:grid-cols-3 gap-6'>
+        <div className='bg-white rounded-2xl shadow-sm border p-6'>
+          <p className='text-sm text-gray-500 mb-2'>Total Workflows</p>
+          <p className='text-3xl font-bold'>{workflows.length}</p>
+        </div>
+
+        <div className='bg-white rounded-2xl shadow-sm border p-6'>
+          <p className='text-sm text-gray-500 mb-2'>Execution Status</p>
+          <p className='text-3xl font-bold text-yellow-600'>
+            {runResult?.status || 'Idle'}
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className='bg-white rounded-2xl shadow-sm border p-6'>
+          <p className='text-sm text-gray-500 mb-2'>Backend</p>
+          <p className='text-3xl font-bold text-green-600'>Online</p>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Workflow List */}
+      <section className='max-w-5xl mx-auto px-6 pb-8'>
+        <div className='bg-white rounded-2xl shadow-sm border p-6'>
+          <h2 className='text-xl font-semibold mb-4'>Workflows</h2>
+
+          {workflows.length === 0 ? (
+            <p className='text-gray-500'>Click “Load Workflows”.</p>
+          ) : (
+            <div className='space-y-3'>
+              {workflows.map((wf) => (
+                <div
+                  key={wf.id}
+                  className='border rounded-xl p-4 flex items-start justify-between'
+                >
+                  <div>
+                    <h3 className='font-semibold'>{wf.name}</h3>
+                    <p className='text-sm text-gray-500 mt-1'>
+                      {wf.description}
+                    </p>
+                  </div>
+
+                  <span className='text-xs bg-gray-100 px-2 py-1 rounded-full'>
+                    {wf.id.slice(0, 8)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Latest Run */}
+      <section className='max-w-5xl mx-auto px-6 pb-12'>
+        <div className='bg-white rounded-2xl shadow-sm border p-6'>
+          <h2 className='text-xl font-semibold mb-4'>Latest Run</h2>
+
+          {!runResult ? (
+            <p className='text-gray-500'>
+              Click “Run Workflow” to execute the workflow.
+            </p>
+          ) : runResult.error ? (
+            <p className='text-red-600'>{runResult.error}</p>
+          ) : (
+            <div className='space-y-4'>
+              <div className='flex items-center gap-3'>
+                <span className='font-medium'>Status:</span>
+                <span className='px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium'>
+                  {runResult.status}
+                </span>
+              </div>
+
+              <p className='text-gray-700'>{runResult.message}</p>
+
+              <div className='space-y-3'>
+                {runResult.steps?.map((step: any, index: number) => (
+                  <div
+                    key={index}
+                    className='border rounded-xl p-4 bg-gray-50'
+                  >
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='font-semibold'>{step.step}</h3>
+
+                      <span
+                        className={
+                          step.status === 'completed'
+                            ? 'text-green-700 bg-green-100 px-2 py-1 rounded text-xs font-medium'
+                            : 'text-yellow-800 bg-yellow-100 px-2 py-1 rounded text-xs font-medium'
+                        }
+                      >
+                        {step.status}
+                      </span>
+                    </div>
+
+                    <pre className='text-sm whitespace-pre-wrap overflow-auto'>
+                      {JSON.stringify(step.output || step.message, null, 2)}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }
