@@ -173,8 +173,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for schema reasoning, permission model,
 
 ## Demo Video
 
-Add your Loom / Google Drive / YouTube demo link here before submission.
-
+https://drive.google.com/file/d/19diUoLvk1YxdX3nvK_QhjoTNpHPCEm_8/view?usp=drive_link
 ---
 
 ## Author
@@ -182,3 +181,6 @@ Add your Loom / Google Drive / YouTube demo link here before submission.
 **Iqra Tahreem**
 
 GitHub: https://github.com/iqra2243
+
+
+
